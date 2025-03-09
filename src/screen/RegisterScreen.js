@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -13,8 +13,27 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { Colors } from "../constants";
+import AuthenticationService from "../services/AuthenticationService";
 
 const RegisterScreen = ({ navigation }) => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const register = () => {
+    setIsLoading(true);
+    console.log("click name", name);
+    AuthenticationService.register(name, email, password).then((res) => {
+      console.log(res);
+      if (res?.status) {
+        console.log("token login", res?.data);
+        // dispatch(GeneralAction.setToken(res?.data?.token));
+        setIsLoading(false);
+        navigation.navigate("LoginScreen");
+      }
+    });
+  };
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -48,6 +67,7 @@ const RegisterScreen = ({ navigation }) => {
             />
             <TextInput
               style={styles.input}
+              onChangeText={(text) => setName(text)}
               placeholder="Full Name"
               placeholderTextColor="#888"
             />
@@ -66,6 +86,7 @@ const RegisterScreen = ({ navigation }) => {
               placeholderTextColor="#888"
               keyboardType="email-address"
               autoCapitalize="none"
+              onChangeText={(text) => setEmail(text)}
             />
           </View>
 
@@ -81,6 +102,7 @@ const RegisterScreen = ({ navigation }) => {
               placeholder="Password"
               placeholderTextColor="#888"
               secureTextEntry
+              onChangeText={(text) => setPassword(text)}
             />
           </View>
 
@@ -101,7 +123,7 @@ const RegisterScreen = ({ navigation }) => {
 
           <TouchableOpacity
             style={styles.registerButton}
-            onPress={() => navigation.navigate("HomeScreen")}
+            onPress={() => register()}
           >
             <Text style={styles.registerButtonText}>Register</Text>
           </TouchableOpacity>

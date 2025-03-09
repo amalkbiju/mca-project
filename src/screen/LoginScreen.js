@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -15,11 +15,27 @@ import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import Icon from "react-native-vector-icons/Ionicons";
 import { Colors } from "../constants";
+import AuthenticationService from "../services/AuthenticationService";
 
 const LoginScreen = ({ route }) => {
   const navigation = useNavigation();
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { userType } = route.params || { userType: "user" };
-
+  const login = () => {
+    setIsLoading(true);
+    console.log("click name", name);
+    AuthenticationService.login(name, password).then((res) => {
+      console.log(res);
+      if (res?.status) {
+        console.log("token login", res?.data);
+        // dispatch(GeneralAction.setToken(res?.data?.token));
+        setIsLoading(false);
+        navigation.navigate("HomeScreen");
+      }
+    });
+  };
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -59,6 +75,7 @@ const LoginScreen = ({ route }) => {
               placeholderTextColor="#888"
               keyboardType="email-address"
               autoCapitalize="none"
+              onChangeText={(text) => setName(text)}
             />
           </View>
 
@@ -74,6 +91,7 @@ const LoginScreen = ({ route }) => {
               placeholder="Password"
               placeholderTextColor="#888"
               secureTextEntry
+              onChangeText={(text) => setPassword(text)}
             />
           </View>
 

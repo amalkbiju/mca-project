@@ -1,3 +1,4 @@
+// src/screens/HomeScreen.js
 import React, { useState } from "react";
 import {
   StyleSheet,
@@ -8,21 +9,12 @@ import {
   TextInput,
   Image,
   ScrollView,
-  FlatList,
 } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
+import { useSelector, useDispatch } from "react-redux";
 import Icon from "react-native-vector-icons/Ionicons";
-import FeatherIcon from "react-native-vector-icons/Feather";
-import {
-  Container,
-  Separator,
-  Typography,
-} from "react-native-tillring-components";
+import { Container } from "react-native-tillring-components";
+import { addToCart, removeFromCart } from "../redux/cartSlice";
 
-const Stack = createStackNavigator();
-
-// Product data
 const products = [
   {
     id: "1",
@@ -74,16 +66,19 @@ const products = [
   },
 ];
 
-const relatedProducts = [
-  { id: "1", image: "https://placeholder.com/related1" },
-  { id: "2", image: "https://placeholder.com/related2" },
-  { id: "3", image: "https://placeholder.com/related3" },
-  { id: "4", image: "https://placeholder.com/related4" },
-  { id: "5", image: "https://placeholder.com/related5" },
-];
-
 const HomeScreen = ({ navigation }) => {
-  const [addToCart, setAddToCart] = useState(0);
+  const dispatch = useDispatch();
+
+  const { items, totalItems } = useSelector((state) => state.cart);
+
+  const handleAddToCart = (product) => {
+    dispatch(addToCart(product));
+  };
+
+  const handleRemoveFromCart = (productId) => {
+    dispatch(removeFromCart(productId));
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -160,95 +155,140 @@ const HomeScreen = ({ navigation }) => {
                 key={product.id}
                 style={styles.productCard}
                 onPress={() =>
-                  navigation.navigate("ProductDetailedScreen", { product })
+                  navigation.navigate("ProductDetail", { product })
                 }
               >
-                <Image
-                  source={product.image}
-                  style={styles.productImage}
-                  resizeMode="cover"
-                />
-                <View style={styles.productSaveButton}>
-                  <Icon name="bookmark-outline" size={16} color="#fff" />
-                </View>
-                <Text style={styles.productName}>{product.name}</Text>
-                <View style={styles.productPriceContainer}>
+                <Image source={product.image} style={styles.productImage} />
+                <View style={styles.productInfo}>
+                  <Text style={styles.productName}>{product.name}</Text>
                   <Text style={styles.productPrice}>{product.price}</Text>
-
-                  <Container row aCenter jCenter>
-                    {addToCart > 0 && (
-                      <>
-                        <TouchableOpacity
-                          style={styles.addButton}
-                          onPress={() => setAddToCart(addToCart - 1)}
-                        >
-                          <FeatherIcon name="minus" size={18} color="#fff" />
-                        </TouchableOpacity>
-                        <Separator width={5} />
-                        <Typography>{addToCart}</Typography>
-                        <Separator width={5} />
-                      </>
-                    )}
-
-                    <TouchableOpacity
-                      style={styles.addButton}
-                      onPress={() => setAddToCart(addToCart + 1)}
-                    >
-                      <Icon name="add-outline" size={18} color="#fff" />
-                    </TouchableOpacity>
-                  </Container>
                 </View>
+                <TouchableOpacity
+                  style={styles.addToCartButton}
+                  onPress={() => handleAddToCart(product)}
+                >
+                  <Icon name="add-circle" size={24} color="#4CAF50" />
+                </TouchableOpacity>
               </TouchableOpacity>
             ))}
           </View>
         </View>
+
+        {/* Categories Section */}
+        <View style={styles.categoriesContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Categories</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAllButton}>See All</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.categoriesScroll}
+          >
+            {["Seeds", "Tools", "Machinery", "Fertilizers", "Pesticides"].map(
+              (category, index) => (
+                <TouchableOpacity key={index} style={styles.categoryCard}>
+                  <View style={styles.categoryIconContainer}>
+                    <Icon
+                      name={
+                        index === 0
+                          ? "leaf-outline"
+                          : index === 1
+                          ? "hammer-outline"
+                          : index === 2
+                          ? "car-outline"
+                          : index === 3
+                          ? "flask-outline"
+                          : "shield-outline"
+                      }
+                      size={24}
+                      color="#4CAF50"
+                    />
+                  </View>
+                  <Text style={styles.categoryName}>{category}</Text>
+                </TouchableOpacity>
+              )
+            )}
+          </ScrollView>
+        </View>
+
+        {/* Blog Section */}
+        <View style={styles.blogContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Latest Articles</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAllButton}>See All</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.blogScroll}
+          >
+            {[
+              { title: "Top 5 Seeds for Summer", date: "March 2, 2025" },
+              {
+                title: "How to Increase Farm Yield",
+                date: "February 24, 2025",
+              },
+              {
+                title: "Sustainable Farming Methods",
+                date: "February 15, 2025",
+              },
+            ].map((article, index) => (
+              <TouchableOpacity key={index} style={styles.blogCard}>
+                <Image
+                  source={require("../assets/images/cowImage.jpg")}
+                  style={styles.blogImage}
+                />
+                <View style={styles.blogContent}>
+                  <Text style={styles.blogTitle}>{article.title}</Text>
+                  <Text style={styles.blogDate}>{article.date}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
       </ScrollView>
 
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNavigation}>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="home" size={24} color="#4CAF50" />
-          <Text style={[styles.navText, styles.activeNavText]}>Home</Text>
+      {/* Cart Button */}
+      {totalItems > 0 && (
+        <TouchableOpacity
+          style={styles.cartButton}
+          onPress={() => navigation.navigate("CartScreen")}
+        >
+          <Icon name="cart-outline" size={24} color="#fff" />
+          <View style={styles.cartBadge}>
+            <Text style={styles.cartCount}>{totalItems}</Text>
+          </View>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="grid-outline" size={24} color="#ABABAB" />
-          <Text style={styles.navText}>Services</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="cart-outline" size={24} color="#ABABAB" />
-          <Text style={styles.navText}>Cart</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="person-outline" size={24} color="#ABABAB" />
-          <Text style={styles.navText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+      )}
     </SafeAreaView>
   );
 };
 
-export default HomeScreen;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#f9f9f9",
   },
-  // Home Screen Styles
   header: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 10,
+    paddingVertical: 12,
   },
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
   },
   headerTextContainer: {
-    marginLeft: 16,
+    marginLeft: 12,
   },
   headerGreeting: {
     fontSize: 18,
@@ -257,18 +297,18 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 14,
-    color: "#888",
-    marginTop: 2,
+    color: "#666",
   },
   notificationButton: {
     position: "relative",
+    padding: 4,
   },
   notificationBadge: {
     position: "absolute",
-    top: -5,
-    right: -5,
-    backgroundColor: "#FF5252",
-    borderRadius: 8,
+    top: 0,
+    right: 0,
+    backgroundColor: "#FF6B6B",
+    borderRadius: 10,
     width: 16,
     height: 16,
     justifyContent: "center",
@@ -282,72 +322,86 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: "row",
     paddingHorizontal: 16,
-    marginTop: 16,
+    marginVertical: 12,
+    alignItems: "center",
   },
   searchInputContainer: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F5F5F5",
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    marginRight: 10,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginRight: 12,
+    height: 44,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   searchIcon: {
-    marginRight: 10,
+    marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    height: 40,
+    fontSize: 14,
     color: "#333",
   },
   filterButton: {
     backgroundColor: "#4CAF50",
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+    borderRadius: 8,
+    width: 44,
+    height: 44,
     justifyContent: "center",
     alignItems: "center",
   },
   consultationBanner: {
     flexDirection: "row",
-    backgroundColor: "#E8F5E9",
-    borderRadius: 10,
+    backgroundColor: "#E3F2FD",
+    borderRadius: 12,
     padding: 16,
-    margin: 16,
+    marginHorizontal: 16,
+    marginVertical: 12,
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   consultationTextContainer: {
     flex: 1,
   },
   consultationTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
-    color: "#4CAF50",
+    color: "#333",
+    marginBottom: 4,
   },
   consultationSubtitle: {
     fontSize: 14,
     color: "#666",
-    marginTop: 4,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   callNowButton: {
     backgroundColor: "#4CAF50",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
     alignSelf: "flex-start",
   },
   callNowText: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 14,
+    fontSize: 12,
   },
   consultationImage: {
-    width: 100,
-    height: 100,
+    width: 80,
+    height: 80,
   },
   featuredContainer: {
+    marginTop: 16,
     paddingHorizontal: 16,
   },
   featuredHeader: {
@@ -362,8 +416,9 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   seeAllButton: {
-    color: "#4CAF50",
     fontSize: 14,
+    color: "#4CAF50",
+    fontWeight: "500",
   },
   productsGrid: {
     flexDirection: "row",
@@ -371,213 +426,160 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   productCard: {
-    width: "48%",
     backgroundColor: "#fff",
-    borderRadius: 10,
+    borderRadius: 12,
+    width: "48%",
     marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
     overflow: "hidden",
+    position: "relative",
   },
   productImage: {
     width: "100%",
     height: 120,
-    borderRadius: 8,
+    resizeMode: "cover",
   },
-  productSaveButton: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    borderRadius: 8,
-    width: 30,
-    height: 30,
-    justifyContent: "center",
-    alignItems: "center",
+  productInfo: {
+    padding: 12,
   },
   productName: {
     fontSize: 14,
-    fontWeight: "bold",
-    marginTop: 8,
-    marginLeft: 4,
+    fontWeight: "500",
     color: "#333",
-  },
-  productPriceContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 4,
-    paddingHorizontal: 4,
-    paddingBottom: 8,
+    marginBottom: 4,
   },
   productPrice: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "#333",
-  },
-  addButton: {
-    backgroundColor: "#4CAF50",
-    width: 26,
-    height: 26,
-    borderRadius: 6,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  bottomNavigation: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#EFEFEF",
-  },
-  navItem: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  navText: {
-    fontSize: 12,
-    marginTop: 4,
-    color: "#ABABAB",
-  },
-  activeNavText: {
     color: "#4CAF50",
-    fontWeight: "bold",
-  },
-
-  // Product Details Screen
-  detailsHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
-  detailsHeaderTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  detailsImage: {
-    width: "100%",
-    height: 220,
-    borderRadius: 10,
-    marginHorizontal: 16,
-  },
-  productInfo: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
-  },
-  productTitleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  productDetailTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#333",
-    flex: 1,
-  },
-  priceContainer: {
-    flexDirection: "row",
-    alignItems: "baseline",
-  },
-  productDetailPrice: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  priceUnit: {
-    fontSize: 14,
-    color: "#888",
-    marginLeft: 2,
-  },
-  stockStatus: {
-    fontSize: 14,
-    color: "#4CAF50",
-    marginTop: 4,
-  },
-  ratingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  ratingText: {
-    fontSize: 14,
-    color: "#666",
-    marginLeft: 4,
-  },
-  quantityContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 16,
-  },
-  quantityButton: {
-    backgroundColor: "#4CAF50",
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  quantityText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginHorizontal: 16,
-  },
-  descriptionContainer: {
-    marginTop: 24,
-  },
-  descriptionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  descriptionText: {
-    fontSize: 14,
-    color: "#666",
-    lineHeight: 20,
-  },
-  readMoreText: {
-    color: "#4CAF50",
-    marginTop: 4,
-  },
-  relatedContainer: {
-    marginTop: 24,
-    marginBottom: 100,
-  },
-  relatedTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 12,
-  },
-  relatedProductItem: {
-    marginRight: 12,
-  },
-  relatedProductImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-  },
-  bottomButtonContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#fff",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#EFEFEF",
   },
   addToCartButton: {
+    position: "absolute",
+    bottom: 8,
+    right: 8,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+  },
+  categoriesContainer: {
+    marginTop: 24,
+    paddingHorizontal: 16,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  categoriesScroll: {
+    paddingBottom: 12,
+  },
+  categoryCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 12,
+    marginRight: 12,
+    alignItems: "center",
+    width: 100,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  categoryIconContainer: {
+    backgroundColor: "#E8F5E9",
+    borderRadius: 25,
+    width: 50,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  categoryName: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#333",
+    textAlign: "center",
+  },
+  blogContainer: {
+    marginTop: 24,
+    paddingHorizontal: 16,
+    marginBottom: 30,
+  },
+  blogScroll: {
+    paddingBottom: 16,
+  },
+  blogCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    width: 220,
+    marginRight: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    overflow: "hidden",
+  },
+  blogImage: {
+    width: "100%",
+    height: 120,
+    resizeMode: "cover",
+  },
+  blogContent: {
+    padding: 12,
+  },
+  blogTitle: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#333",
+    marginBottom: 4,
+  },
+  blogDate: {
+    fontSize: 12,
+    color: "#888",
+  },
+  cartButton: {
+    position: "absolute",
+    bottom: 24,
+    right: 24,
     backgroundColor: "#4CAF50",
+    borderRadius: 28,
+    width: 56,
+    height: 56,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  cartBadge: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    backgroundColor: "#FF6B6B",
     borderRadius: 10,
-    paddingVertical: 15,
+    width: 20,
+    height: 20,
+    justifyContent: "center",
     alignItems: "center",
   },
-  addToCartText: {
+  cartCount: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "bold",
   },
 });
+
+export default HomeScreen;

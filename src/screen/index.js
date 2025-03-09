@@ -5,7 +5,8 @@ import WelcomeScreenCards from "./WelcomeScreenCrads";
 import LoginScreen from "./LoginScreen";
 import RegisterScreen from "./RegisterScreen";
 import ProductDetailedScreen from "./ProductDetailedScreen";
-
+import CartScreen from "./CartScreen";
+import PaymentScreen from "./PaymentScreen";
 export {
   LandingScreen,
   HomeScreen,
@@ -14,4 +15,6 @@ export {
   LoginScreen,
   RegisterScreen,
   ProductDetailedScreen,
+  CartScreen,
+  PaymentScreen,
 };

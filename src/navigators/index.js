@@ -8,6 +8,8 @@ import {
   RegisterScreen,
   HomeScreen,
   ProductDetailedScreen,
+  CartScreen,
+  PaymentScreen,
 } from "../screen";
 
 const Stack = createStackNavigator();
@@ -24,6 +26,8 @@ const Navigator = () => {
         <Stack.Screen name="LoginScreen" component={LoginScreen} />
         <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
         <Stack.Screen name="HomeScreen" component={HomeScreen} />
+        <Stack.Screen name="CartScreen" component={CartScreen} />
+        <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
         <Stack.Screen
           name="ProductDetailedScreen"
           component={ProductDetailedScreen}
