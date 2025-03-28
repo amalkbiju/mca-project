@@ -16,25 +16,43 @@ import { createStackNavigator } from "@react-navigation/stack";
 import Icon from "react-native-vector-icons/Ionicons";
 import { Colors } from "../constants";
 import AuthenticationService from "../services/AuthenticationService";
+import { GeneralAction } from "../redux/GeneralAction";
+import { useDispatch } from "react-redux";
 
 const LoginScreen = ({ route }) => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { userType } = route.params || { userType: "user" };
+  console.log("userType", userType);
   const login = () => {
     setIsLoading(true);
-    console.log("click name", name);
-    AuthenticationService.login(name, password).then((res) => {
-      console.log(res);
-      if (res?.status) {
-        console.log("token login", res?.data);
-        // dispatch(GeneralAction.setToken(res?.data?.token));
-        setIsLoading(false);
-        navigation.navigate("HomeScreen");
-      }
-    });
+
+    if (userType === "admin") {
+      console.log("admin login");
+      AuthenticationService.adminLogin(name, password).then((res) => {
+        console.log(res);
+        if (res?.status) {
+          console.log("token login", res?.data?.token);
+          dispatch(GeneralAction.setToken(res?.data?.token));
+          setIsLoading(false);
+          navigation.navigate("AdminHomeScreen");
+        }
+      });
+    } else if (userType === "user") {
+      console.log("user login");
+      AuthenticationService.login(name, password).then((res) => {
+        console.log(res);
+        if (res?.status) {
+          console.log("token login", res?.data?.token);
+          dispatch(GeneralAction.setToken(res?.data?.token));
+          setIsLoading(false);
+          navigation.navigate("HomeScreen");
+        }
+      });
+    }
   };
   return (
     <KeyboardAvoidingView
@@ -99,21 +117,20 @@ const LoginScreen = ({ route }) => {
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.loginButton}
-            onPress={() => navigation.navigate("HomeScreen")}
-          >
+          <TouchableOpacity style={styles.loginButton} onPress={() => login()}>
             <Text style={styles.loginButtonText}>Login</Text>
           </TouchableOpacity>
 
-          <View style={styles.registerContainer}>
-            <Text style={styles.registerText}>Don't have an account? </Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("RegisterScreen")}
-            >
-              <Text style={styles.registerLink}>Register</Text>
-            </TouchableOpacity>
-          </View>
+          {userType === "user" && (
+            <View style={styles.registerContainer}>
+              <Text style={styles.registerText}>Don't have an account? </Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("RegisterScreen")}
+              >
+                <Text style={styles.registerLink}>Register</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </SafeAreaView>
     </KeyboardAvoidingView>

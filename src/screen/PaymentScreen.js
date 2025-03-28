@@ -1,4 +1,3 @@
-// src/screens/PaymentScreen.js
 import React, { useState } from "react";
 import {
   StyleSheet,
@@ -6,43 +5,136 @@ import {
   View,
   SafeAreaView,
   TouchableOpacity,
-  Image,
   ScrollView,
   TextInput,
   Alert,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import Icon from "react-native-vector-icons/Ionicons";
+import LottieView from "lottie-react-native";
 import { clearCart } from "../redux/cartSlice";
 
 const PaymentScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const { items, totalItems, totalAmount } = useSelector((state) => state.cart);
   const [paymentMethod, setPaymentMethod] = useState("card");
+  const [orderConfirmed, setOrderConfirmed] = useState(false);
 
-  // Convert items object to array
+  // Form data state
+  const [formData, setFormData] = useState({
+    fullName: "",
+    address: "",
+    city: "",
+    zipCode: "",
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
+  });
+
+  // Errors state
+  const [errors, setErrors] = useState({});
+
   const cartItemsArray = Object.values(items);
 
+  // Input change handler
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  // Payment method change handler
   const handlePaymentMethodChange = (method) => {
     setPaymentMethod(method);
   };
 
-  const handleConfirmOrder = () => {
-    // Show confirmation alert
-    Alert.alert(
-      "Order Confirmation",
-      "Your order has been placed successfully!",
-      [
-        {
-          text: "OK",
-          onPress: () => {
-            dispatch(clearCart());
-            navigation.navigate("Home");
-          },
-        },
-      ]
-    );
+  // Form validation function
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Name validation
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Full name is required";
+    } else if (formData.fullName.trim().length < 2) {
+      newErrors.fullName = "Full name must be at least 2 characters";
+    }
+
+    // Address validation
+    if (!formData.address.trim()) {
+      newErrors.address = "Address is required";
+    }
+
+    // City validation
+    if (!formData.city.trim()) {
+      newErrors.city = "City is required";
+    }
+
+    // Zip Code validation
+    if (!formData.zipCode.trim()) {
+      newErrors.zipCode = "Zip Code is required";
+    } else if (!/^\d{5}(-\d{4})?$/.test(formData.zipCode)) {
+      newErrors.zipCode = "Invalid Zip Code";
+    }
+
+    // Payment method specific validations
+    if (paymentMethod === "card") {
+      // Card Number validation
+      if (!formData.cardNumber.trim()) {
+        newErrors.cardNumber = "Card Number is required";
+      } else if (!/^\d{16}$/.test(formData.cardNumber.replace(/\s/g, ""))) {
+        newErrors.cardNumber = "Invalid Card Number";
+      }
+
+      // Expiry Date validation
+      if (!formData.expiryDate.trim()) {
+        newErrors.expiryDate = "Expiry Date is required";
+      } else if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(formData.expiryDate)) {
+        newErrors.expiryDate = "Invalid Expiry Date (MM/YY)";
+      }
+
+      // CVV validation
+      if (!formData.cvv.trim()) {
+        newErrors.cvv = "CVV is required";
+      } else if (!/^\d{3}$/.test(formData.cvv)) {
+        newErrors.cvv = "Invalid CVV";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
+
+  // Order confirmation handler
+  const handleConfirmOrder = () => {
+    if (validateForm()) {
+      setOrderConfirmed(true);
+      setTimeout(() => {
+        dispatch(clearCart());
+        navigation.navigate("TrackingScreen", {
+          orderDetails: {
+            ...formData,
+            totalAmount: totalAmount + 5,
+            items: cartItemsArray,
+          },
+        });
+      }, 2000);
+    }
+  };
+
+  // Render order confirmation animation
+  if (orderConfirmed) {
+    return (
+      <View style={styles.confirmationContainer}>
+        <LottieView
+          source={require("../assets/animation/conform.json")}
+          autoPlay
+          loop={false}
+          style={styles.lottieAnimation}
+        />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -63,7 +155,7 @@ const PaymentScreen = ({ navigation }) => {
           {cartItemsArray.map((item) => (
             <View key={item.id} style={styles.orderItem}>
               <View style={styles.orderItemDetails}>
-                <Text style={styles.orderItemName}>{item.name}</Text>
+                <Text style={styles.orderItemName}>{item.productType}</Text>
                 <Text style={styles.orderItemQuantity}>x{item.quantity}</Text>
               </View>
               <Text style={styles.orderItemPrice}>
@@ -96,42 +188,65 @@ const PaymentScreen = ({ navigation }) => {
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Shipping Information</Text>
 
+          {/* Full Name Input */}
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Full Name</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, errors.fullName && styles.inputError]}
               placeholder="Enter your full name"
               placeholderTextColor="#999"
+              value={formData.fullName}
+              onChangeText={(value) => handleInputChange("fullName", value)}
             />
+            {errors.fullName && (
+              <Text style={styles.errorText}>{errors.fullName}</Text>
+            )}
           </View>
 
+          {/* Address Input */}
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Address</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, errors.address && styles.inputError]}
               placeholder="Enter your address"
               placeholderTextColor="#999"
+              value={formData.address}
+              onChangeText={(value) => handleInputChange("address", value)}
             />
+            {errors.address && (
+              <Text style={styles.errorText}>{errors.address}</Text>
+            )}
           </View>
 
+          {/* City and Zip Code Row */}
           <View style={styles.rowContainer}>
             <View style={[styles.inputContainer, { flex: 1, marginRight: 8 }]}>
               <Text style={styles.inputLabel}>City</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, errors.city && styles.inputError]}
                 placeholder="City"
                 placeholderTextColor="#999"
+                value={formData.city}
+                onChangeText={(value) => handleInputChange("city", value)}
               />
+              {errors.city && (
+                <Text style={styles.errorText}>{errors.city}</Text>
+              )}
             </View>
 
             <View style={[styles.inputContainer, { flex: 1, marginLeft: 8 }]}>
               <Text style={styles.inputLabel}>Zip Code</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, errors.zipCode && styles.inputError]}
                 placeholder="Zip Code"
                 placeholderTextColor="#999"
                 keyboardType="numeric"
+                value={formData.zipCode}
+                onChangeText={(value) => handleInputChange("zipCode", value)}
               />
+              {errors.zipCode && (
+                <Text style={styles.errorText}>{errors.zipCode}</Text>
+              )}
             </View>
           </View>
         </View>
@@ -140,6 +255,7 @@ const PaymentScreen = ({ navigation }) => {
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Payment Method</Text>
 
+          {/* Card Payment Option */}
           <TouchableOpacity
             style={[
               styles.paymentOption,
@@ -159,6 +275,7 @@ const PaymentScreen = ({ navigation }) => {
             <Icon name="card-outline" size={24} color="#333" />
           </TouchableOpacity>
 
+          {/* Cash Payment Option */}
           <TouchableOpacity
             style={[
               styles.paymentOption,
@@ -178,28 +295,50 @@ const PaymentScreen = ({ navigation }) => {
             <Icon name="cash-outline" size={24} color="#333" />
           </TouchableOpacity>
 
+          {/* Card Payment Details */}
           {paymentMethod === "card" && (
             <>
+              {/* Card Number Input */}
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Card Number</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, errors.cardNumber && styles.inputError]}
                   placeholder="1234 5678 9012 3456"
                   placeholderTextColor="#999"
                   keyboardType="numeric"
+                  value={formData.cardNumber}
+                  onChangeText={(value) =>
+                    handleInputChange("cardNumber", value)
+                  }
+                  maxLength={16}
                 />
+                {errors.cardNumber && (
+                  <Text style={styles.errorText}>{errors.cardNumber}</Text>
+                )}
               </View>
 
+              {/* Expiry and CVV Row */}
               <View style={styles.rowContainer}>
                 <View
                   style={[styles.inputContainer, { flex: 1, marginRight: 8 }]}
                 >
                   <Text style={styles.inputLabel}>Expiry Date</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[
+                      styles.input,
+                      errors.expiryDate && styles.inputError,
+                    ]}
                     placeholder="MM/YY"
                     placeholderTextColor="#999"
+                    value={formData.expiryDate}
+                    onChangeText={(value) =>
+                      handleInputChange("expiryDate", value)
+                    }
+                    maxLength={5}
                   />
+                  {errors.expiryDate && (
+                    <Text style={styles.errorText}>{errors.expiryDate}</Text>
+                  )}
                 </View>
 
                 <View
@@ -207,12 +346,18 @@ const PaymentScreen = ({ navigation }) => {
                 >
                   <Text style={styles.inputLabel}>CVV</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, errors.cvv && styles.inputError]}
                     placeholder="123"
                     placeholderTextColor="#999"
                     keyboardType="numeric"
                     secureTextEntry
+                    value={formData.cvv}
+                    onChangeText={(value) => handleInputChange("cvv", value)}
+                    maxLength={3}
                   />
+                  {errors.cvv && (
+                    <Text style={styles.errorText}>{errors.cvv}</Text>
+                  )}
                 </View>
               </View>
             </>
@@ -346,6 +491,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#333",
   },
+  inputError: {
+    borderColor: "red",
+  },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginTop: 4,
+  },
   rowContainer: {
     flexDirection: "row",
   },
@@ -398,6 +551,16 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: "row",
     alignItems: "center",
+  },
+  confirmationContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
+  },
+  lottieAnimation: {
+    width: 300,
+    height: 300,
   },
   totalAmountContainer: {
     flex: 1,

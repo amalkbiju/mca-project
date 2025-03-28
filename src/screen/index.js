@@ -7,6 +7,8 @@ import RegisterScreen from "./RegisterScreen";
 import ProductDetailedScreen from "./ProductDetailedScreen";
 import CartScreen from "./CartScreen";
 import PaymentScreen from "./PaymentScreen";
+import TrackingScreen from "./TrackingScreen";
+import UserProductSellScreen from "./UserProductSellScreen";
 export {
   LandingScreen,
   HomeScreen,
@@ -17,4 +19,6 @@ export {
   ProductDetailedScreen,
   CartScreen,
   PaymentScreen,
+  TrackingScreen,
+  UserProductSellScreen,
 };

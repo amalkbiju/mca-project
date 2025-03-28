@@ -3,12 +3,16 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   name: "",
   email: "",
+  token: "",
 };
 
 const generalSlice = createSlice({
   name: "general",
   initialState,
   reducers: {
+    setToken: (state, action) => {
+      state.token = action.payload;
+    },
     setName: (state, action) => {
       state.name = action.payload;
     },

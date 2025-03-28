@@ -10,7 +10,10 @@ import {
   ProductDetailedScreen,
   CartScreen,
   PaymentScreen,
+  TrackingScreen,
+  UserProductSellScreen,
 } from "../screen";
+import { AdminHomeScreen } from "../screen/admin";
 
 const Stack = createStackNavigator();
 const Navigator = () => {
@@ -31,6 +34,13 @@ const Navigator = () => {
         <Stack.Screen
           name="ProductDetailedScreen"
           component={ProductDetailedScreen}
+        />
+        <Stack.Screen name="AdminHomeScreen" component={AdminHomeScreen} />
+
+        <Stack.Screen name="TrackingScreen" component={TrackingScreen} />
+        <Stack.Screen
+          name="UserProductSellScreen"
+          component={UserProductSellScreen}
         />
       </Stack.Navigator>
     </NavigationContainer>

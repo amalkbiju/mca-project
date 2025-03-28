@@ -2,6 +2,9 @@ const BACKEND_BASE_URL = "http://localhost:3000/v1/";
 const BACKEND_URLS = {
   LOGIN: "auth/login",
   REGSITER: "auth/register",
+  ADMIN_LOGIN: "auth/admin/login",
+  PRODUCT: "product",
+  IMAGE_UPLOAD: "product/upload-multiple",
 };
 
 export default {

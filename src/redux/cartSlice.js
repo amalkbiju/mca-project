@@ -12,7 +12,7 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addToCart: (state, action) => {
-      const { id, name, price, image } = action.payload;
+      const { id, name, price, images, productType } = action.payload;
 
       // Convert price string to number (e.g. "$15/kg" -> 15)
       const numericPrice = parseFloat(price.replace(/[^\d.]/g, ""));
@@ -22,10 +22,10 @@ const cartSlice = createSlice({
       } else {
         state.items[id] = {
           id,
-          name,
+          productType,
           price,
           numericPrice,
-          image,
+          images,
           quantity: 1,
         };
       }

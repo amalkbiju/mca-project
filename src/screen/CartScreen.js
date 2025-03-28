@@ -13,6 +13,7 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import Icon from "react-native-vector-icons/Ionicons";
 import { addToCart, removeFromCart } from "../redux/cartSlice";
+import { Typography } from "react-native-tillring-components";
 
 const CartScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -20,7 +21,7 @@ const CartScreen = ({ navigation }) => {
 
   // Convert items object to array for FlatList
   const cartItemsArray = Object.values(items);
-
+  console.log("items", cartItemsArray);
   // Check if cart is empty
   const isCartEmpty = cartItemsArray.length === 0;
 
@@ -34,10 +35,14 @@ const CartScreen = ({ navigation }) => {
 
   const renderCartItem = ({ item }) => (
     <View style={styles.cartItem}>
-      <Image source={item.image} style={styles.itemImage} resizeMode="cover" />
+      <Image
+        source={{ uri: item?.images[0]?.url }}
+        style={styles.itemImage}
+        resizeMode="cover"
+      />
 
       <View style={styles.itemDetails}>
-        <Text style={styles.itemName}>{item.name}</Text>
+        <Text style={styles.itemName}>{item.productType}</Text>
         <Text style={styles.itemPrice}>{item.price}</Text>
       </View>
 

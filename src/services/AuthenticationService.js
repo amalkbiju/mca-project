@@ -27,6 +27,33 @@ const login = async (username, password) => {
     };
   }
 };
+const adminLogin = async (email, password) => {
+  try {
+    console.log("api pass__", email, password);
+    let response = await ApiServices.HttpRequest.post(
+      ApiConstants?.BACKEND_URLS?.ADMIN_LOGIN,
+      {
+        email: email,
+        password: password,
+      }
+    );
+    if (response.status === 200) {
+      return {
+        status: true,
+        data: response.data,
+      };
+    } else {
+      return {
+        status: false,
+      };
+    }
+  } catch (error) {
+    return {
+      status: false,
+      message: "Something went wrong",
+    };
+  }
+};
 const register = async (name, email, password) => {
   try {
     // const stringWithoutFirstLetter = emailOrNumber.substring(1);
@@ -55,4 +82,4 @@ const register = async (name, email, password) => {
     };
   }
 };
-export default { login, register };
+export default { login, register, adminLogin };
