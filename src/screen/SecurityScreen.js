@@ -19,7 +19,7 @@ import LinearGradient from "react-native-linear-gradient";
 import ProductServices from "../services/ProductServices";
 import { useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
-import { Colors } from "../constants";
+import { ApiConstants, Colors } from "../constants";
 import { Separator } from "react-native-tillring-components";
 import CustomCheckbox from "../compontents/CustomCheckbox";
 
@@ -69,7 +69,7 @@ const ProductCard = ({ item, nav, token, refreshProducts }) => {
       const securityIndex = 2;
 
       const response = await axios.patch(
-        `http://localhost:3000/v1/product/user-products/${item.id}/track/${securityIndex}`,
+        `${ApiConstants.BACKEND_BASE_URL}product/user-products/${item.id}/track/${securityIndex}`,
         { status: checked },
         {
           headers: {
@@ -111,11 +111,21 @@ const ProductCard = ({ item, nav, token, refreshProducts }) => {
           <View style={styles.cardContent}>
             {/* Image container - same size in both states */}
             <View style={styles.imageContainer}>
-              <Image
-                source={{ uri: item.images[0].url }}
-                style={styles.image}
-                resizeMode="cover"
-              />
+              {!item.images || item.images.length !== 0 ? (
+                <Image
+                  source={{
+                    uri: item.images[0].url,
+                  }}
+                  style={styles.image}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Image
+                  source={require("../assets/images/noImage.jpg")}
+                  style={styles.image}
+                  resizeMode="cover"
+                />
+              )}
             </View>
 
             <View style={styles.contentContainer}>

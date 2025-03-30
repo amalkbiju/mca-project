@@ -879,25 +879,37 @@ const ProductDetailsScreen = ({ route, navigation }) => {
         showsVerticalScrollIndicator={false}
       >
         {/* Image Carousel */}
-        <View style={styles.carouselContainer}>
-          <Animated.FlatList
-            ref={flatListRef}
-            data={product.images}
-            keyExtractor={(item) => item.id}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onScroll={scrollHandler}
-            onViewableItemsChanged={onViewableItemsChanged}
-            viewabilityConfig={viewabilityConfig}
-            renderItem={({ item }) => (
-              <View style={styles.imageContainer}>
-                <Image source={{ uri: item.url }} style={styles.productImage} />
-              </View>
-            )}
-          />
-          {renderDotIndicators()}
-        </View>
+        {!product.images || product.images.length !== 0 ? (
+          <View style={styles.carouselContainer}>
+            <Animated.FlatList
+              ref={flatListRef}
+              data={product.images}
+              keyExtractor={(item) => item.id}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onScroll={scrollHandler}
+              onViewableItemsChanged={onViewableItemsChanged}
+              viewabilityConfig={viewabilityConfig}
+              renderItem={({ item }) => (
+                <View style={styles.imageContainer}>
+                  <Image
+                    source={{ uri: item.url }}
+                    style={styles.productImage}
+                  />
+                </View>
+              )}
+            />
+            {renderDotIndicators()}
+          </View>
+        ) : (
+          <View style={styles.imageContainer}>
+            <Image
+              source={require("../assets/images/noImage.jpg")}
+              style={styles.productImage}
+            />
+          </View>
+        )}
 
         {/* Product Info Card */}
         <LinearGradient

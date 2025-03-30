@@ -38,13 +38,23 @@ const ProductCard = ({ item, nav }) => {
         style={styles.card}
       >
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: item.images[0].url }}
-            style={styles.image}
-            resizeMode="cover"
-          />
+          {!item.images || item.images.length !== 0 ? (
+            <Image
+              source={{
+                uri: item.images[0].url,
+              }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+          ) : (
+            <Image
+              source={require("../assets/images/noImage.jpg")}
+              style={styles.image}
+              resizeMode="cover"
+            />
+          )}
         </View>
-
+        {/* 1745 */}
         <View style={styles.contentContainer}>
           <Text style={styles.productType}>{item.productType}</Text>
 
