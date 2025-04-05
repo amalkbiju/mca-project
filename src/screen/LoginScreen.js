@@ -14,7 +14,7 @@ import {
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import Icon from "react-native-vector-icons/Ionicons";
-import { Colors } from "../constants";
+import { Colors, General } from "../constants";
 import AuthenticationService from "../services/AuthenticationService";
 import { GeneralAction } from "../redux/GeneralAction";
 import { useDispatch } from "react-redux";
@@ -32,13 +32,25 @@ const LoginScreen = ({ route }) => {
 
     if (userType === "admin") {
       console.log("admin login");
+
       AuthenticationService.adminLogin(name, password).then((res) => {
         console.log(res);
         if (res?.status) {
-          console.log("token login", res?.data?.token);
-          dispatch(GeneralAction.setToken(res?.data?.token));
-          setIsLoading(false);
-          navigation.navigate("AdminHomeScreen");
+          console.log("token login", res);
+          if (res?.data?.status) {
+            dispatch(GeneralAction.setToken(res?.data?.token));
+            setIsLoading(false);
+            navigation.navigate("AdminHomeScreen");
+          } else {
+            dispatch(
+              GeneralAction.addAlertMessagel({
+                message: res?.data?.message,
+                type: General.ALERT_MESSAGE_TYPE.AUTO_CLOSER,
+                level: General.ALERT_MESSAGE_LEVEL.WARNING,
+                duration: 3000,
+              })
+            );
+          }
         }
       });
     } else if (userType === "user") {
@@ -46,32 +58,73 @@ const LoginScreen = ({ route }) => {
       AuthenticationService.login(name, password).then((res) => {
         console.log(res);
         if (res?.status) {
-          console.log("token login", res?.data?.token);
-          dispatch(GeneralAction.setToken(res?.data?.token));
-          setIsLoading(false);
-          navigation.navigate("HomeScreen");
+          console.log("token login", res);
+          if (res?.data?.status) {
+            dispatch(GeneralAction.setToken(res?.data?.token));
+            setIsLoading(false);
+            navigation.navigate("HomeScreen");
+          } else {
+            dispatch(
+              GeneralAction.addAlertMessagel({
+                message: res?.data?.message,
+                type: General.ALERT_MESSAGE_TYPE.AUTO_CLOSER,
+                level: General.ALERT_MESSAGE_LEVEL.WARNING,
+                duration: 3000,
+              })
+            );
+          }
         }
       });
     } else if (userType === "security") {
       console.log("security login");
+      // AuthenticationService.securityLogin(name, password).then((res) => {
+      //   console.log(res);
+      //   if (res?.status) {
+      //     console.log("token login", res?.data?.token);
+      //     dispatch(GeneralAction.setToken(res?.data?.token));
+      //     setIsLoading(false);
+      //     navigation.navigate("SecurityScreen");
+      //   }
+      // });
       AuthenticationService.securityLogin(name, password).then((res) => {
         console.log(res);
         if (res?.status) {
-          console.log("token login", res?.data?.token);
-          dispatch(GeneralAction.setToken(res?.data?.token));
-          setIsLoading(false);
-          navigation.navigate("SecurityScreen");
+          console.log("token login", res);
+          if (res?.data?.status) {
+            dispatch(GeneralAction.setToken(res?.data?.token));
+            setIsLoading(false);
+            navigation.navigate("SecurityScreen");
+          } else {
+            dispatch(
+              GeneralAction.addAlertMessagel({
+                message: res?.data?.message,
+                type: General.ALERT_MESSAGE_TYPE.AUTO_CLOSER,
+                level: General.ALERT_MESSAGE_LEVEL.WARNING,
+                duration: 3000,
+              })
+            );
+          }
         }
       });
     } else if (userType === "lab") {
-      console.log("security login");
       AuthenticationService.labLogin(name, password).then((res) => {
         console.log(res);
         if (res?.status) {
-          console.log("token login", res?.data?.token);
-          dispatch(GeneralAction.setToken(res?.data?.token));
-          setIsLoading(false);
-          navigation.navigate("LabScreen");
+          console.log("token login", res);
+          if (res?.data?.status) {
+            dispatch(GeneralAction.setToken(res?.data?.token));
+            setIsLoading(false);
+            navigation.navigate("LabScreen");
+          } else {
+            dispatch(
+              GeneralAction.addAlertMessagel({
+                message: res?.data?.message,
+                type: General.ALERT_MESSAGE_TYPE.AUTO_CLOSER,
+                level: General.ALERT_MESSAGE_LEVEL.WARNING,
+                duration: 3000,
+              })
+            );
+          }
         }
       });
     }
@@ -139,7 +192,12 @@ const LoginScreen = ({ route }) => {
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.loginButton} onPress={() => login()}>
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={() => {
+              login();
+            }}
+          >
             <Text style={styles.loginButtonText}>Login</Text>
           </TouchableOpacity>
 

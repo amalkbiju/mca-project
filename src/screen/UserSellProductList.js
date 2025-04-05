@@ -24,6 +24,7 @@ const { width } = Dimensions.get("window");
 const cardWidth = width * 0.95;
 
 const ProductCard = ({ item, nav }) => {
+  console.log("vechile no", item.vechileNo);
   return (
     <TouchableOpacity
       style={styles.cardContainer}
@@ -71,7 +72,15 @@ const ProductCard = ({ item, nav }) => {
 
             <View style={styles.detailRow}>
               <Icon name="car-outline" size={18} color="#FF6B6B" />
-              <Text style={styles.detailText}>{item.vechileNo}</Text>
+              {/* <Text style={styles.detailText}>{item.vechileNo}</Text> */}
+              <FlatList
+                data={item.vechileNo}
+                horizontal
+                ItemSeparatorComponent={() => <Separator width={10} />}
+                renderItem={({ item }) => (
+                  <Text style={styles.detailText}>{item}</Text>
+                )}
+              />
             </View>
           </View>
 

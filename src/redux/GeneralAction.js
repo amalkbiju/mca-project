@@ -5,6 +5,7 @@ const initialState = {
   email: "",
   token: "",
   userDetails: {},
+  alertMessages: [],
 };
 
 const generalSlice = createSlice({
@@ -22,6 +23,22 @@ const generalSlice = createSlice({
     },
     setUserDetails: (state, action) => {
       state.userDetails = action.payload;
+    },
+    addAlertMessagel: (state, action) => {
+      // Corrected function name from "addAlertMessagel"
+      if (!action.payload?.id) {
+        action.payload.id = Date.now().toString();
+      }
+      state.alertMessages.push(action.payload);
+    },
+
+    removeAlertMessage: (state, action) => {
+      return {
+        ...state,
+        alertMessages: state.alertMessages.filter(
+          (alertMessage) => alertMessage?.id !== action.payload
+        ),
+      };
     },
   },
 });

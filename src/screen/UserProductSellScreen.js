@@ -12,6 +12,7 @@ import {
   FlatList,
   SafeAreaView,
   Image,
+  Alert,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
@@ -20,6 +21,10 @@ import * as ImagePicker from "expo-image-picker";
 import ProductServices from "../services/ProductServices";
 import { useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
+import { Container } from "react-native-tillring-components";
+import Display from "../utils/Display";
+import LottieView from "lottie-react-native";
+import { Colors } from "../constants";
 
 // Custom Dropdown Component
 const CustomDropdown = ({
@@ -29,6 +34,7 @@ const CustomDropdown = ({
   onSelect,
   placeholder,
   onSelectLabel = () => {}, // Add a default no-op function
+  error,
 }) => {
   const [visible, setVisible] = useState(false);
 
@@ -59,7 +65,10 @@ const CustomDropdown = ({
 
   return (
     <View>
-      <TouchableOpacity style={styles.dropdown} onPress={toggleDropdown}>
+      <TouchableOpacity
+        style={[styles.dropdown, error ? styles.inputError : null]}
+        onPress={toggleDropdown}
+      >
         <Text
           style={selectedValue ? styles.selectedText : styles.placeholderText}
         >
@@ -73,6 +82,7 @@ const CustomDropdown = ({
           color="#555"
         />
       </TouchableOpacity>
+      {error && <Text style={styles.errorText}>{error}</Text>}
 
       <Modal
         visible={visible}
@@ -103,8 +113,7 @@ const UserProductSellScreen = () => {
   const nav = useNavigation();
   const token = useSelector((state) => state?.generalState?.token);
   const userDetails = useSelector((state) => state?.generalState?.userDetails);
-  console.log("userDetails", userDetails);
-  console.log("token___", token);
+
   const productList = [
     { label: "Wheat Bran", value: "wheat_bran" },
     { label: "Turmeric Waste", value: "turmeric_waste" },
@@ -122,9 +131,26 @@ const UserProductSellScreen = () => {
     { label: "Molasses", value: "molasses" },
     { label: "Rape Seed Extraction", value: "rape_seed_extraction" },
   ];
+
   const [imagesUrls, setImagesUrls] = useState([]);
+
+  // Validation state
+  const [errors, setErrors] = useState({
+    selectedProduct: "",
+    moisture: "",
+    sands: "",
+    da: "",
+    calcium: "",
+    kg: "",
+    price: "",
+    images: "",
+    vechileNumber: "",
+    noOfVechile: "",
+    totalWeight: "",
+  });
+
   // Image Picker Component
-  const ImagePickerComponent = ({ images, setImages }) => {
+  const ImagePickerComponent = ({ images, setImages, error }) => {
     const pickImages = async () => {
       try {
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -134,11 +160,16 @@ const UserProductSellScreen = () => {
         });
 
         if (!result.canceled) {
+          setIsImageLoader(true);
           setImages([...images, ...result.assets]);
+          // Clear any error when images are added
+          setErrors((prev) => ({ ...prev, images: "" }));
           ProductServices.uploadImage(result?.assets).then((res) => {
             if (res.status) {
-              console.log("res image upload", res?.data?.data);
               setImagesUrls(res?.data?.data);
+              setIsImageLoader(false);
+            } else {
+              setIsImageLoader(false);
             }
           });
         }
@@ -152,15 +183,19 @@ const UserProductSellScreen = () => {
       newImages.splice(index, 1);
       setImages(newImages);
     };
-    console.log("selectedProduct", selectedProductName);
+
     return (
       <View style={styles.imagePickerContainer}>
         <Text style={styles.fieldLabel}>Product Images</Text>
 
-        <TouchableOpacity style={styles.addImageButton} onPress={pickImages}>
+        <TouchableOpacity
+          style={[styles.addImageButton, error ? styles.inputError : null]}
+          onPress={pickImages}
+        >
           <Icon name="add-photo-alternate" size={24} color="#4CAF50" />
           <Text style={styles.addImageText}>Add Images</Text>
         </TouchableOpacity>
+        {error && <Text style={styles.errorText}>{error}</Text>}
 
         <ScrollView horizontal style={styles.imagesScrollView}>
           {images.map((image, index) => (
@@ -178,9 +213,11 @@ const UserProductSellScreen = () => {
       </View>
     );
   };
+
   // State for selected product
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProductName, setSelectedProductName] = useState("");
+
   // Common options for dropdowns
   const moisture10to12Options = [
     { label: "10%", value: "10" },
@@ -240,6 +277,10 @@ const UserProductSellScreen = () => {
   const [vechileNumber, setVechileNumber] = useState("");
   const [noOfVechile, setNoOfVechiles] = useState("");
   const [totalWeight, setTotalWeight] = useState("");
+  const [isImageLoader, setIsImageLoader] = useState(false);
+  const [currentVehicleNumber, setCurrentVehicleNumber] = useState("");
+  const [vehicleNumbers, setVehicleNumbers] = useState([]);
+  console.log("Vehicle Numbers:", vehicleNumbers);
   // Reset form when product changes
   useEffect(() => {
     setMoisture("");
@@ -249,9 +290,50 @@ const UserProductSellScreen = () => {
     setKg("");
     setPrice("");
     setImages([]);
+    setVechileNumber("");
+    setNoOfVechiles("");
+    setTotalWeight("");
+
+    // Clear errors when product changes
+    setErrors({
+      selectedProduct: "",
+      moisture: "",
+      sands: "",
+      da: "",
+      calcium: "",
+      kg: "",
+      price: "",
+      images: "",
+      vechileNumber: "",
+      noOfVechile: "",
+      totalWeight: "",
+    });
   }, [selectedProduct]);
 
-  // Get the appropriate moisture options based on product
+  const addVehicleNumber = () => {
+    if (currentVehicleNumber.trim() === "") {
+      setErrors((prev) => ({
+        ...prev,
+        vechileNumber: "Vehicle number cannot be empty",
+      }));
+      return;
+    }
+
+    // Add the new vehicle number to the array
+    setVehicleNumbers([...vehicleNumbers, currentVehicleNumber.trim()]);
+
+    // Clear the input field and any errors
+    setCurrentVehicleNumber("");
+    setErrors((prev) => ({ ...prev, vechileNumber: "" }));
+  };
+
+  // Function to remove a vehicle number from the list
+  const removeVehicleNumber = (index) => {
+    const updatedVehicleNumbers = [...vehicleNumbers];
+    updatedVehicleNumbers.splice(index, 1);
+    setVehicleNumbers(updatedVehicleNumbers);
+  };
+
   const getMoistureOptions = () => {
     if (selectedProduct === "limestone_powder") {
       return moisture4to5Options;
@@ -261,6 +343,7 @@ const UserProductSellScreen = () => {
       return moisture10to12Options;
     }
   };
+
   const productTrack = [
     {
       title: "Order Received",
@@ -298,6 +381,7 @@ const UserProductSellScreen = () => {
       stage: false,
     },
   ];
+
   // Get the appropriate S&S options based on product
   const getSandsOptions = () => {
     if (selectedProduct === "limestone_powder") {
@@ -334,11 +418,103 @@ const UserProductSellScreen = () => {
     return !simpleProducts.includes(selectedProduct);
   };
 
+  // Validate form fields
+  const validateForm = () => {
+    let isValid = true;
+    let newErrors = {
+      selectedProduct: "",
+      moisture: "",
+      sands: "",
+      da: "",
+      calcium: "",
+      kg: "",
+      price: "",
+      images: "",
+      vechileNumber: "",
+      noOfVechile: "",
+      totalWeight: "",
+    };
+
+    // Validate product selection
+    if (!selectedProduct) {
+      newErrors.selectedProduct = "Please select a product";
+      isValid = false;
+    }
+
+    // Validate moisture and sands if needed
+    if (showMoistureAndSands()) {
+      if (!moisture) {
+        newErrors.moisture = "Moisture percentage is required";
+        isValid = false;
+      }
+      if (!sands) {
+        newErrors.sands = "S&S percentage is required";
+        isValid = false;
+      }
+    }
+
+    // Validate D&A if needed
+    if (showDAField() && !da) {
+      newErrors.da = "D&A percentage is required";
+      isValid = false;
+    }
+
+    // Validate Calcium if needed
+    if (showCalciumField() && !calcium) {
+      newErrors.calcium = "Calcium percentage is required";
+      isValid = false;
+    }
+
+    // Validate kg
+    if (!kg) {
+      newErrors.kg = "Quantity is required";
+      isValid = false;
+    } else if (isNaN(kg) || parseFloat(kg) <= 0) {
+      newErrors.kg = "Please enter a valid quantity";
+      isValid = false;
+    }
+
+    // Validate price
+    if (!price) {
+      newErrors.price = "Price is required";
+      isValid = false;
+    } else if (isNaN(price) || parseFloat(price) <= 0) {
+      newErrors.price = "Please enter a valid price";
+      isValid = false;
+    }
+
+    // Validate vehicle number
+    if (vehicleNumbers.length === 0) {
+      newErrors.vechileNumber = "At least one vehicle number is required";
+      isValid = false;
+    }
+
+    // Validate number of vehicles
+
+    // Validate total weight
+    if (!totalWeight) {
+      newErrors.totalWeight = "Total weight is required";
+      isValid = false;
+    } else if (isNaN(totalWeight) || parseFloat(totalWeight) <= 0) {
+      newErrors.totalWeight = "Please enter a valid total weight";
+      isValid = false;
+    }
+
+    // Validate images
+    if (images.length === 0) {
+      newErrors.images = "Please add at least one product image";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   // Handle form submission
   const handleSubmit = async () => {
-    // Validation
-    if (!selectedProduct) {
-      alert("Please select a product!");
+    // Validate form
+    if (!validateForm()) {
+      Alert.alert("Validation Error", "Please check all fields and try again.");
       return;
     }
 
@@ -347,6 +523,9 @@ const UserProductSellScreen = () => {
       productName: productList.find((p) => p.value === selectedProduct)?.label,
       kg,
       price,
+      vechileNumber,
+      noOfVechile,
+      totalWeight,
       images: images.map((img) => img.uri), // Array of image URIs
     };
 
@@ -367,8 +546,6 @@ const UserProductSellScreen = () => {
     console.log("Product data to upload:", productData);
 
     try {
-      // Upload images first (if any)
-
       // Call the createProduct API
       const createProductResponse = await ProductServices.createUserProduct(
         token,
@@ -388,30 +565,55 @@ const UserProductSellScreen = () => {
       );
 
       if (createProductResponse.status) {
-        console.log(
-          "Product uploaded successfully:",
-          createProductResponse.data
-        );
-        alert("Product uploaded successfully!");
+        Alert.alert("Success", "Product uploaded successfully!", [
+          { text: "OK", onPress: () => nav.navigate("UserSellPaymentScreen") },
+        ]);
 
         // Reset form
         setSelectedProduct(null);
-        setMoisture(null);
-        setSands(null);
-        setDa(null);
-        setCalcium(null);
+        setSelectedProductName("");
+        setMoisture("");
+        setSands("");
+        setDa("");
+        setCalcium("");
         setKg("");
         setPrice("");
         setImages([]);
+        setVechileNumber("");
+        setNoOfVechiles("");
+        setTotalWeight("");
       } else {
         throw new Error(
           "Failed to create product: " + createProductResponse.message
         );
       }
     } catch (error) {
+      Alert.alert("Error", "Failed to upload product: " + error.message);
       console.error("Error during product submission:", error.message);
     }
   };
+
+  const handleContinue = () => {
+    if (validateForm()) {
+      nav.navigate("UserSellPaymentScreen", {
+        selectedProductName,
+        imagesUrls,
+        moisture,
+        sands,
+        da,
+        calcium,
+        kg,
+        price,
+        vehicleNumbers,
+        noOfVechile,
+        totalWeight,
+        productTrack,
+      });
+    } else {
+      Alert.alert("Validation Error", "Please check all fields and try again.");
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#4c669f" }}>
       <KeyboardAvoidingView
@@ -453,6 +655,7 @@ const UserProductSellScreen = () => {
                 onSelect={setSelectedProduct}
                 onSelectLabel={setSelectedProductName}
                 placeholder="Select a product to upload"
+                error={errors.selectedProduct}
               />
             </View>
 
@@ -477,6 +680,7 @@ const UserProductSellScreen = () => {
                         selectedValue={moisture}
                         onSelect={setMoisture}
                         placeholder="Select moisture percentage"
+                        error={errors.moisture}
                       />
                     </View>
 
@@ -494,6 +698,7 @@ const UserProductSellScreen = () => {
                         selectedValue={sands}
                         onSelect={setSands}
                         placeholder="Select S&S percentage"
+                        error={errors.sands}
                       />
                     </View>
                   </>
@@ -509,6 +714,7 @@ const UserProductSellScreen = () => {
                       selectedValue={da}
                       onSelect={setDa}
                       placeholder="Select D&A percentage"
+                      error={errors.da}
                     />
                   </View>
                 )}
@@ -523,6 +729,7 @@ const UserProductSellScreen = () => {
                       selectedValue={calcium}
                       onSelect={setCalcium}
                       placeholder="Select calcium percentage"
+                      error={errors.calcium}
                     />
                   </View>
                 )}
@@ -531,60 +738,144 @@ const UserProductSellScreen = () => {
                 <View style={styles.fieldContainer}>
                   <Text style={styles.fieldLabel}>Quantity (kg)</Text>
                   <TextInput
-                    style={styles.textInput}
+                    style={[
+                      styles.textInput,
+                      errors.kg ? styles.inputError : null,
+                    ]}
                     value={kg}
-                    onChangeText={setKg}
+                    onChangeText={(text) => {
+                      setKg(text);
+                      if (text) {
+                        setErrors((prev) => ({ ...prev, kg: "" }));
+                      }
+                    }}
                     placeholder="Enter quantity in kg"
                     keyboardType="numeric"
                   />
+                  {errors.kg ? (
+                    <Text style={styles.errorText}>{errors.kg}</Text>
+                  ) : null}
                 </View>
 
                 {/* Price Field - Common for all products */}
                 <View style={styles.fieldContainer}>
                   <Text style={styles.fieldLabel}>Price</Text>
                   <TextInput
-                    style={styles.textInput}
+                    style={[
+                      styles.textInput,
+                      errors.price ? styles.inputError : null,
+                    ]}
                     value={price}
-                    onChangeText={setPrice}
+                    onChangeText={(text) => {
+                      setPrice(text);
+                      if (text) {
+                        setErrors((prev) => ({ ...prev, price: "" }));
+                      }
+                    }}
                     placeholder="Enter price"
                     keyboardType="numeric"
                   />
+                  {errors.price ? (
+                    <Text style={styles.errorText}>{errors.price}</Text>
+                  ) : null}
                 </View>
+
+                {/* Vehicle Number Field */}
                 <View style={styles.fieldContainer}>
-                  <Text style={styles.fieldLabel}>Vechile Number</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    value={vechileNumber}
-                    onChangeText={setVechileNumber}
-                    placeholder="Enter vechile number"
+                  <Text style={styles.fieldLabel}>Vehicle Numbers</Text>
+                  <View style={styles.vehicleInputContainer}>
+                    <TextInput
+                      style={[
+                        styles.vehicleInput,
+                        errors.vechileNumber ? styles.inputError : null,
+                      ]}
+                      value={currentVehicleNumber}
+                      onChangeText={(text) => {
+                        setCurrentVehicleNumber(text);
+                        if (vehicleNumbers.length > 0) {
+                          setErrors((prev) => ({ ...prev, vechileNumber: "" }));
+                        }
+                      }}
+                      placeholder="Enter vehicle number"
+                    />
+                    <TouchableOpacity
+                      style={styles.addVehicleButton}
+                      onPress={addVehicleNumber}
+                    >
+                      <Icon name="add-circle" size={24} color="#4CAF50" />
+                    </TouchableOpacity>
+                  </View>
+
+                  {errors.vechileNumber ? (
+                    <Text style={styles.errorText}>{errors.vechileNumber}</Text>
+                  ) : null}
+
+                  <ScrollView style={styles.vehicleListContainer}>
+                    {vehicleNumbers.map((number, index) => (
+                      <View key={index} style={styles.vehicleListItem}>
+                        <Text style={styles.vehicleNumberText}>{number}</Text>
+                        <TouchableOpacity
+                          style={styles.removeVehicleButton}
+                          onPress={() => removeVehicleNumber(index)}
+                        >
+                          <Icon name="close" size={18} color="#FF6B6B" />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </ScrollView>
+                </View>
+
+                {/* Number of Vehicles Field */}
+                <View style={styles.fieldContainer}>
+                  <Text style={styles.fieldLabel}>No. of Vehicles</Text>
+                  <Text style={styles.textInput}>
+                    {vehicleNumbers.length.toString()}
+                  </Text>
+                  {/* <TextInput
+                    style={[
+                      styles.textInput,
+                      errors.noOfVechile ? styles.inputError : null,
+                    ]}
+                    defaultValue={vehicleNumbers.length.toString()}
                     keyboardType="numeric"
-                  />
+                  /> */}
+                  {errors.noOfVechile ? (
+                    <Text style={styles.errorText}>{errors.noOfVechile}</Text>
+                  ) : null}
                 </View>
+
+                {/* Total Weight Field */}
                 <View style={styles.fieldContainer}>
-                  <Text style={styles.fieldLabel}>No. of Vechile </Text>
+                  <Text style={styles.fieldLabel}>Total Weight (tons)</Text>
                   <TextInput
-                    style={styles.textInput}
-                    value={noOfVechile}
-                    onChangeText={setNoOfVechiles}
-                    placeholder="Enter number of vechiles"
-                    keyboardType="numeric"
-                  />
-                </View>
-                <View style={styles.fieldContainer}>
-                  <Text style={styles.fieldLabel}>Total Weight </Text>
-                  <TextInput
-                    style={styles.textInput}
+                    style={[
+                      styles.textInput,
+                      errors.totalWeight ? styles.inputError : null,
+                    ]}
                     value={totalWeight}
-                    onChangeText={setTotalWeight}
-                    placeholder="Enter weight in tone"
+                    onChangeText={(text) => {
+                      setTotalWeight(text);
+                      if (text) {
+                        setErrors((prev) => ({ ...prev, totalWeight: "" }));
+                      }
+                    }}
+                    placeholder="Enter weight in tons"
                     keyboardType="numeric"
                   />
+                  {errors.totalWeight ? (
+                    <Text style={styles.errorText}>{errors.totalWeight}</Text>
+                  ) : null}
                 </View>
+
                 {/* Image Picker Component */}
-                <ImagePickerComponent images={images} setImages={setImages} />
+                <ImagePickerComponent
+                  images={images}
+                  setImages={setImages}
+                  error={errors.images}
+                />
 
                 {/* Submit Button */}
-                <TouchableOpacity onPress={handleSubmit}>
+                <TouchableOpacity onPress={handleContinue}>
                   <LinearGradient
                     colors={["#4CAF50", "#2E7D32"]}
                     style={styles.submitButton}
@@ -598,6 +889,23 @@ const UserProductSellScreen = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      {isImageLoader && (
+        <Container
+          flex1
+          bgColor={Colors.TRANSPARENT}
+          absolute
+          aCenter
+          jCenter
+          w={Display.setWidth(100)}
+          h={Display.setHeight(100)}
+        >
+          <LottieView
+            source={require("../assets/animation/imageLoader.json")}
+            autoPlay
+            style={styles.imageLoaderLottie}
+          />
+        </Container>
+      )}
     </SafeAreaView>
   );
 };
@@ -653,6 +961,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ddd",
     fontSize: 16,
+  },
+  inputError: {
+    borderColor: "#FF6B6B",
+    borderWidth: 1,
+  },
+  errorText: {
+    color: "#FF6B6B",
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
   },
   // Custom dropdown styles
   dropdown: {
@@ -760,6 +1078,50 @@ const styles = StyleSheet.create({
     height: 24,
     alignItems: "center",
     justifyContent: "center",
+  },
+  imageLoaderLottie: {
+    width: Display.setWidth(60),
+    height: Display.setWidth(60),
+  },
+  vehicleInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  vehicleInput: {
+    flex: 1,
+    backgroundColor: "white",
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    fontSize: 16,
+  },
+  addVehicleButton: {
+    marginLeft: 10,
+    padding: 5,
+  },
+  vehicleListContainer: {
+    maxHeight: Display.setHeight(15),
+    marginTop: 10,
+  },
+  vehicleListItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#E8F5E9",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#B0BEC5",
+  },
+  vehicleNumberText: {
+    flex: 1,
+    color: "#333",
+    fontSize: 14,
+  },
+  removeVehicleButton: {
+    padding: 5,
   },
 });
 

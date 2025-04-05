@@ -16,5 +16,15 @@ const WELCOME_CONTENTS = [
     content: "For your future home, Choose us. We will work for you.",
   },
 ];
+const ALERT_MESSAGE_TYPE = {
+  NORMAL: "NORMAL",
+  AUTO_CLOSER: "AUTO_CLOSER",
+  RETRY: "RETRY",
+};
 
-export default { WELCOME_CONTENTS };
+const ALERT_MESSAGE_LEVEL = {
+  WARNING: "WARNING",
+  SUCCESS: "SUCCESS",
+  DANGER: "DANGER",
+};
+export default { WELCOME_CONTENTS, ALERT_MESSAGE_LEVEL, ALERT_MESSAGE_TYPE };

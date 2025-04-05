@@ -5,6 +5,7 @@ import * as Font from "expo-font";
 import { CustomeFonts } from "./src/constants";
 import { Provider } from "react-redux";
 import Store from "./src/redux/Store";
+import AlertMessage from "./src/compontents/AlertMessage";
 
 const App = () => {
   const [isAppReady, setIsAppReady] = useState(false);
@@ -17,6 +18,7 @@ const App = () => {
   }, []);
   return isAppReady ? (
     <Provider store={Store}>
+      <AlertMessage />
       <Navigator />
     </Provider>
   ) : null;
