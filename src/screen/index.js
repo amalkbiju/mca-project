@@ -14,6 +14,7 @@ import UserSellProductDetailedScreen from "./UserSellProductDetailedScreen";
 import SecurityScreen from "./SecurityScreen";
 import LabScreen from "./LabScreen";
 import UserSellPaymentScreen from "./UserSellPaymentScreen";
+import ProfileScreen from "./ProfileScreen";
 export {
   LandingScreen,
   HomeScreen,
@@ -31,4 +32,5 @@ export {
   SecurityScreen,
   LabScreen,
   UserSellPaymentScreen,
+  ProfileScreen,
 };

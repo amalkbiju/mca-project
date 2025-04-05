@@ -17,6 +17,7 @@ import {
   SecurityScreen,
   LabScreen,
   UserSellPaymentScreen,
+  ProfileScreen,
 } from "../screen";
 import { AdminHomeScreen } from "../screen/admin";
 
@@ -62,6 +63,7 @@ const Navigator = () => {
           name="UserSellPaymentScreen"
           component={UserSellPaymentScreen}
         />
+        <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

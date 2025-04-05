@@ -18,14 +18,16 @@ import LinearGradient from "react-native-linear-gradient";
 import AuthenticationService from "../services/AuthenticationService";
 import { GeneralAction } from "../redux/GeneralAction";
 import { Colors } from "../constants";
-
+import FontAwesome6 from "react-native-vector-icons/Ionicons";
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const { items, totalItems } = useSelector((state) => state.cart);
+  const userDetails = useSelector((state) => state?.generalState?.userDetails);
 
+  console.log("userDetails", userDetails);
   const handleAddToCart = (product) => {
     dispatch(addToCart(product));
   };
@@ -91,15 +93,18 @@ const HomeScreen = ({ navigation }) => {
               </View>
             </View>
             <View style={styles.headerRight}>
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 style={styles.profileButton}
                 onPress={() => navigation.navigate("ProfileScreen")}
               >
-                {/* <Image
-                  source={require("../assets/images/profile-placeholder.png")}
-                  style={styles.profileImage}
-                /> */}
-              </TouchableOpacity>
+              
+              </TouchableOpacity> */}
+
+              <FontAwesome6
+                name="person-circle-sharp"
+                size={32}
+                onPress={() => navigation.navigate("ProfileScreen")}
+              />
               <TouchableOpacity
                 style={styles.notificationButton}
                 onPress={() => navigation.navigate("CartScreen")}
