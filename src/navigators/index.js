@@ -19,7 +19,8 @@ import {
   UserSellPaymentScreen,
   ProfileScreen,
 } from "../screen";
-import { AdminHomeScreen } from "../screen/admin";
+import { AdminHomeScreen, SellProductsList } from "../screen/admin";
+import AdminPaymentScreen from "../screen/admin/AdminPaymentScreen";
 
 const Stack = createStackNavigator();
 const Navigator = () => {
@@ -64,6 +65,11 @@ const Navigator = () => {
           component={UserSellPaymentScreen}
         />
         <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+        <Stack.Screen name="SellProductsList" component={SellProductsList} />
+        <Stack.Screen
+          name="AdminPaymentScreen"
+          component={AdminPaymentScreen}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -12,17 +12,18 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import Icon from "react-native-vector-icons/Ionicons";
 import LottieView from "lottie-react-native";
-import { clearCart } from "../redux/cartSlice";
-import Display from "../utils/Display";
-import { useNavigation } from "@react-navigation/native";
-import ProductServices from "../services/ProductServices";
 
-const UserSellPaymentScreen = ({ route }) => {
+import Display from "../../utils/Display";
+import { useNavigation } from "@react-navigation/native";
+import ProductServices from "../../services/ProductServices";
+
+const AdminPaymentScreen = ({ route }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const token = useSelector((state) => state?.generalState?.token);
   const userDetails = useSelector((state) => state?.generalState?.userDetails);
-
+  const product = route?.params?.item;
+  console.log("product", product);
   // Initialize parameters with default values
   const [productParams, setProductParams] = useState({
     selectedProductName: "",
@@ -137,30 +138,6 @@ const UserSellPaymentScreen = ({ route }) => {
       newErrors.zipCode = "Invalid Zip Code";
     }
 
-    // Payment method specific validations
-    if (paymentMethod === "card") {
-      // Card Number validation
-      if (!formData.cardNumber.trim()) {
-        newErrors.cardNumber = "Card Number is required";
-      } else if (!/^\d{16}$/.test(formData.cardNumber.replace(/\s/g, ""))) {
-        newErrors.cardNumber = "Invalid Card Number";
-      }
-
-      // Expiry Date validation
-      if (!formData.expiryDate.trim()) {
-        newErrors.expiryDate = "Expiry Date is required";
-      } else if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(formData.expiryDate)) {
-        newErrors.expiryDate = "Invalid Expiry Date (MM/YY)";
-      }
-
-      // CVV validation
-      if (!formData.cvv.trim()) {
-        newErrors.cvv = "CVV is required";
-      } else if (!/^\d{3}$/.test(formData.cvv)) {
-        newErrors.cvv = "Invalid CVV";
-      }
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -170,7 +147,7 @@ const UserSellPaymentScreen = ({ route }) => {
     return (
       <View style={styles.confirmationContainer}>
         <LottieView
-          source={require("../assets/animation/conform.json")}
+          source={require("../../assets/animation/conform.json")}
           autoPlay
           loop={false}
           style={styles.lottieAnimation}
@@ -186,48 +163,17 @@ const UserSellPaymentScreen = ({ route }) => {
       }
 
       // Check if we have the required product data
-      if (!productParams.selectedProductName) {
-        Alert.alert(
-          "Missing Information",
-          "Product information is missing. Please go back and fill all required fields.",
-          [{ text: "OK" }]
-        );
-        return;
-      }
 
-      const createProductResponse = await ProductServices.createUserProduct(
-        token,
-        productParams.selectedProductName,
-        productParams.imagesUrls,
-        productParams.moisture,
-        productParams.sands,
-        productParams.da,
-        productParams.calcium,
-        productParams.kg,
-        productParams.price,
-        productParams.vehicleNumbers,
-        productParams.noOfVechile,
-        productParams.totalWeight,
-        productParams.productTrack,
-        userDetails
+      Alert.alert(
+        "Product Confirmation",
+        "product confirmation has been successfully updated",
+        [
+          {
+            text: "OK",
+            onPress: () => navigation.goBack(), // Navigates to HomeScreen
+          },
+        ]
       );
-
-      if (createProductResponse?.status) {
-        setOrderConfirmed(true);
-        setTimeout(() => {
-          Alert.alert("Success", "Product uploaded successfully!", [
-            {
-              text: "OK",
-              onPress: () => navigation.navigate("UserSellProductList"),
-            },
-          ]);
-        }, 2000);
-      } else {
-        Alert.alert(
-          "Error",
-          createProductResponse?.message || "Failed to create product"
-        );
-      }
     } catch (error) {
       console.error("Error in handleConfirmOrder:", error);
       Alert.alert(
@@ -253,17 +199,15 @@ const UserSellPaymentScreen = ({ route }) => {
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Order Summary</Text>
 
-          {productParams.selectedProductName ? (
+          {product !== undefined ? (
             <View style={styles.orderItem}>
               <View style={styles.orderItemDetails}>
-                <Text style={styles.orderItemName}>
-                  {productParams.selectedProductName}
-                </Text>
+                <Text style={styles.orderItemName}>{product.productType}</Text>
                 <Text style={styles.orderItemQuantity}>
-                  Weight: {productParams.kg} kg
+                  Weight: {product.kg} kg
                 </Text>
               </View>
-              <Text style={styles.orderItemPrice}>${productParams.price}</Text>
+              <Text style={styles.orderItemPrice}>${product.price}</Text>
             </View>
           ) : (
             <Text style={styles.noProductText}>
@@ -276,10 +220,7 @@ const UserSellPaymentScreen = ({ route }) => {
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Subtotal</Text>
             <Text style={styles.summaryValue}>
-              $
-              {productParams.price
-                ? Number(productParams.price).toFixed(2)
-                : "0.00"}
+              ${productParams.price ? Number(product.price).toFixed(2) : "0.00"}
             </Text>
           </View>
 
@@ -411,74 +352,13 @@ const UserSellPaymentScreen = ({ route }) => {
           </TouchableOpacity>
 
           {/* Card Payment Details - Show only if card payment is selected */}
-          {paymentMethod === "card" && (
-            <View style={styles.cardDetailsContainer}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Card Number</Text>
-                <TextInput
-                  style={[styles.input, errors.cardNumber && styles.inputError]}
-                  placeholder="1234 5678 9012 3456"
-                  placeholderTextColor="#999"
-                  keyboardType="numeric"
-                  value={formData.cardNumber}
-                  onChangeText={(value) =>
-                    handleInputChange("cardNumber", value)
-                  }
-                />
-                {errors.cardNumber && (
-                  <Text style={styles.errorText}>{errors.cardNumber}</Text>
-                )}
-              </View>
-
-              <View style={styles.rowContainer}>
-                <View
-                  style={[styles.inputContainer, { flex: 1, marginRight: 8 }]}
-                >
-                  <Text style={styles.inputLabel}>Expiry Date</Text>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      errors.expiryDate && styles.inputError,
-                    ]}
-                    placeholder="MM/YY"
-                    placeholderTextColor="#999"
-                    value={formData.expiryDate}
-                    onChangeText={(value) =>
-                      handleInputChange("expiryDate", value)
-                    }
-                  />
-                  {errors.expiryDate && (
-                    <Text style={styles.errorText}>{errors.expiryDate}</Text>
-                  )}
-                </View>
-
-                <View
-                  style={[styles.inputContainer, { flex: 1, marginLeft: 8 }]}
-                >
-                  <Text style={styles.inputLabel}>CVV</Text>
-                  <TextInput
-                    style={[styles.input, errors.cvv && styles.inputError]}
-                    placeholder="123"
-                    placeholderTextColor="#999"
-                    keyboardType="numeric"
-                    value={formData.cvv}
-                    onChangeText={(value) => handleInputChange("cvv", value)}
-                    maxLength={3}
-                  />
-                  {errors.cvv && (
-                    <Text style={styles.errorText}>{errors.cvv}</Text>
-                  )}
-                </View>
-              </View>
-            </View>
-          )}
         </View>
 
         <TouchableOpacity
           style={styles.confirmButton}
           onPress={handleConfirmOrder}
         >
-          <Text style={styles.confirmButtonText}>Confirm Order</Text>
+          <Text style={styles.confirmButtonText}>Confirmation</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -702,4 +582,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default UserSellPaymentScreen;
+export default AdminPaymentScreen;

@@ -19,6 +19,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
 import ProductServices from "../../services/ProductServices";
 import { useSelector } from "react-redux";
+import { useNavigation } from "@react-navigation/native";
 
 // Custom Dropdown Component
 const CustomDropdown = ({
@@ -99,6 +100,7 @@ const CustomDropdown = ({
 };
 
 const AdminHomeScreen = () => {
+  const nav = useNavigation();
   const token = useSelector((state) => state?.generalState?.token);
   console.log("token___", token);
   const productList = [
@@ -379,7 +381,12 @@ const AdminHomeScreen = () => {
             <View style={styles.headerContent}>
               {/* <Ionicons name="arrow-back" size={24} color="#4c669f" /> */}
               <Text style={styles.headerTitle}>Product Upload</Text>
-              <Ionicons name="notifications-outline" size={24} color="white" />
+              <Ionicons
+                name="notifications-outline"
+                size={24}
+                color="white"
+                onPress={() => nav.navigate("SellProductsList")}
+              />
             </View>
           </LinearGradient>
 
